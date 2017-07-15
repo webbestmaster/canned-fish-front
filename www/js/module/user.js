@@ -22,6 +22,14 @@ class User extends MainModel {
             console.log(user);
         });
 
+        // TODO: render here
+        socket.on('update', data => {
+            console.log('data', data);
+        });
+
+        // TODO: remove this
+        setInterval(() => socket.emit('xy', {x: Math.random(), y: Math.random()}), 100);
+
 /*
         socket.on('chat message', function(data){
             console.log('chat message', data);
@@ -29,7 +37,6 @@ class User extends MainModel {
         socket.on('disconnect', function(){
             console.log('disconnect');
         });
-        setTimeout(() => socket.emit('message from front', 'math +++++', 'dsds'), 1000);
 */
     }
 }
