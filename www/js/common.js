@@ -13,7 +13,6 @@ import {syncHistoryWithStore, routerReducer} from 'react-router-redux';
 import _ from 'lodash';
 import classnames from 'classnames';
 import initializeEnvironment from './lib/initialize-environment';
-import sha1 from 'sha1';
 import es6Promise from 'es6-promise';
 import fastclick from 'fastclick';
 require('pixi.js');

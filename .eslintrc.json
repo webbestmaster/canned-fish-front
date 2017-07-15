@@ -12,7 +12,8 @@
         "console": true,
         "WebSocket": true,
         "Notification": true,
-        "fetch": true
+        "fetch": true,
+        "io": true
     },
     "plugins": [
     ],
@@ -183,6 +184,7 @@
                     "DB",
                     "ui",
                     "xy",
+                    "io",
                     "tl"
                 ]
             }
