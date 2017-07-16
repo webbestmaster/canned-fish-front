@@ -1,4 +1,10 @@
+/* global io */
 const MainModel = require('../lib/main-model');
+
+const attr = {
+    socket: 'socket',
+    update: 'update'
+};
 
 class User extends MainModel {
     constructor(data) {
@@ -13,6 +19,8 @@ class User extends MainModel {
         const user = this;
         const socket = io();
 
+        user.set(attr.socket, socket);
+
         socket.on('connect', () => {
             console.log('connect');
         });
@@ -22,13 +30,10 @@ class User extends MainModel {
             console.log(user);
         });
 
-        // TODO: render here
-        socket.on('update', data => {
-            console.log('data', data);
-        });
+        socket.on('update', data => user.trigger(attr.update, data));
 
         // TODO: remove this
-        setInterval(() => socket.emit('xy', {x: Math.random(), y: Math.random()}), 100);
+        setInterval(() => socket.emit('xy', {x: Math.random() * 100, y: Math.random() * 100}), 100);
 
 /*
         socket.on('chat message', function(data){
