@@ -13,9 +13,7 @@ class App extends Component {
         const {width, height} = props.screen;
 
         return <div className="wrapper" style={{width: width + 'px', height: height + 'px'}}>
-            <h1>Hi!</h1>
             <Game/>
-            {/* {props.children} */}
         </div>;
     }
 }

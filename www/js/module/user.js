@@ -3,7 +3,8 @@ const MainModel = require('../lib/main-model');
 
 const attr = {
     socket: 'socket',
-    update: 'update'
+    update: 'update',
+    unit: 'unit'
 };
 
 class User extends MainModel {
@@ -13,6 +14,7 @@ class User extends MainModel {
         const user = this;
 
         user.connectToServer();
+        user.set('unit', {x: 0, y: 0});
     }
 
     connectToServer() {
@@ -32,17 +34,15 @@ class User extends MainModel {
 
         socket.on('update', data => user.trigger(attr.update, data));
 
-        // TODO: remove this
-        setInterval(() => socket.emit('xy', {x: Math.random() * 100, y: Math.random() * 100}), 100);
 
-/*
-        socket.on('chat message', function(data){
-            console.log('chat message', data);
-        });
-        socket.on('disconnect', function(){
-            console.log('disconnect');
-        });
-*/
+        /*
+         socket.on('chat message', function(data){
+         console.log('chat message', data);
+         });
+         socket.on('disconnect', function(){
+         console.log('disconnect');
+         });
+         */
     }
 }
 

@@ -12,7 +12,8 @@ Released under the MIT license. http://opensource.736cs.com/licenses/mit
 html, body,
 h1, h2, h3, h4, h5, h6,
 img,
-div, p, a, span {
+div, p, a, span,
+canvas {
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -20,28 +21,32 @@ div, p, a, span {
 	font-size: 100%;
 	vertical-align: baseline;
 	background: transparent;
+}
+
+canvas {
+    display: block;
 }
 /*
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, font, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, i, center, dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, audio, canvas, details, figcaption,
-figure, footer, header, hgroup, mark, menu, meter, nav,
-output, progress, section, summary, time, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	outline: 0;
-	font-size: 100%;
-	vertical-align: baseline;
-	background: transparent;
-}
-*/
+    html, body, div, span, applet, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    a, abbr, acronym, address, big, cite, code,
+    del, dfn, em, font, img, ins, kbd, q, s, samp,
+    small, strike, strong, sub, sup, tt, var,
+    b, i, center, dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td,
+    article, aside, audio, canvas, details, figcaption,
+    figure, footer, header, hgroup, mark, menu, meter, nav,
+    output, progress, section, summary, time, video {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        font-size: 100%;
+        vertical-align: baseline;
+        background: transparent;
+    }
+    */
 
 /*
 article, aside, dialog, figure, footer, header,

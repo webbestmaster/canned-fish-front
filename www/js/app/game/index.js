@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import user from './../../module/user';
 import {find} from 'lodash';
+import joystick from './../../module/joystick';
 const PIXI = require('pixi.js');
 
 class Game extends Component {
@@ -26,20 +27,38 @@ class Game extends Component {
         const {wrapper} = view.refs;
         const app = new PIXI.Application(800, 600);
 
+        function appOnResize() {
+            const docElem = document.documentElement;
+
+            app.renderer.resize(docElem.clientWidth, docElem.clientHeight);
+        }
+
+        appOnResize();
+        window.addEventListener('resize', appOnResize, false);
+
         wrapper.appendChild(app.view);
 
-        PIXI.loader.add('./assets/fish.json').load(() => {
-            app.ticker.add(() => view.draw());
-        });
+        PIXI.loader
+            .add('./assets/fish.json')
+            .load(() => {
+                app.ticker.add(delta => view.draw(delta));
+            });
         view.state.app = app;
     }
 
-    draw() {
+    draw(delta) {
         const view = this;
         const {data, oldData} = view.state;
         const {units} = data;
         let oldUnits = oldData.units;
-        const {stage} = view.state.app;
+        const {stage, renderer} = view.state.app;
+        const userUnit = user.get('unit');
+        const vector = joystick.get('vector');
+
+        userUnit.x -= delta * vector.x;
+        userUnit.y -= delta * vector.y;
+
+        user.get('socket').emit('xy', userUnit);
 
         oldUnits = oldUnits.filter(oldUnit => {
             if (find(units, {id: oldUnit.id})) {
@@ -56,7 +75,7 @@ class Game extends Component {
             if (oldUnit) {
                 unitSprite = oldUnit.sprite;
             } else {
-                unitSprite = PIXI.Sprite.fromFrame('fish-1.png');
+                unitSprite = PIXI.Sprite.fromFrame('fish-' + parseInt(unit.id.substr(-3), 10) % 5 + '.png');
                 stage.addChild(unitSprite);
             }
 
@@ -64,6 +83,14 @@ class Game extends Component {
 
             unitSprite.x = unit.x;
             unitSprite.y = unit.y;
+            unitSprite.anchor.set(0.5, 0.5);
+
+            if (unit.id === user.get('id')) {
+                stage.pivot.x = unit.x;
+                stage.pivot.y = unit.y;
+                stage.position.x = renderer.width / 2;
+                stage.position.y = renderer.height / 2;
+            }
         });
 
         view.state.oldData = data;
