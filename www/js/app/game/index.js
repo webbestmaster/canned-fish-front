@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import user from './../../module/user';
-import {find} from 'lodash';
+import {find, filter, each} from 'lodash';
 import joystick from './../../module/joystick';
 const PIXI = require('pixi.js');
 
@@ -14,10 +14,14 @@ class Game extends Component {
         view.state = {
             app: null,
             oldData: {
-                units: []
+                units: [],
+                dots: [],
+                timestamp: 0
             },
             data: {
-                units: []
+                units: [],
+                dots: [],
+                timestamp: 0
             }
         };
     }
@@ -41,16 +45,19 @@ class Game extends Component {
         PIXI.loader
             .add('./assets/fish.json')
             .load(() => {
+                app.ticker.speed = 1;
                 app.ticker.add(delta => view.draw(delta));
             });
         view.state.app = app;
     }
 
     draw(delta) {
+        console.log(delta);
         const view = this;
         const {data, oldData} = view.state;
-        const {units} = data;
+        const {units, dots} = data;
         let oldUnits = oldData.units;
+        let oldDots = oldData.dots;
         const {stage, renderer} = view.state.app;
         const userUnit = user.get('unit');
         const vector = joystick.get('vector');
@@ -58,9 +65,13 @@ class Game extends Component {
         userUnit.x -= delta * vector.x;
         userUnit.y -= delta * vector.y;
 
-        user.get('socket').emit('xy', userUnit);
+        // I can forget pass all parameters
+        user.get('socket').emit('xy', Object.assign({}, userUnit, {
+            x: parseInt(userUnit.x, 10),
+            y: parseInt(userUnit.y, 10)
+        }));
 
-        oldUnits = oldUnits.filter(oldUnit => {
+        oldUnits = filter(oldUnits, oldUnit => {
             if (find(units, {id: oldUnit.id})) {
                 return true;
             }
@@ -68,7 +79,7 @@ class Game extends Component {
             return false;
         });
 
-        units.forEach(unit => {
+        each(units, unit => {
             const oldUnit = find(oldUnits, {id: unit.id});
             let unitSprite = null;
 
@@ -93,6 +104,33 @@ class Game extends Component {
             }
         });
 
+        oldDots = filter(oldDots, oldDot => {
+            if (find(dots, [oldDot[0], oldDot[1]])) {
+                return true;
+            }
+            stage.removeChild(oldDot[2]);
+            return false;
+        });
+
+        each(dots, dot => {
+            const oldDot = find(oldDots, [dot[0], dot[1]]);
+            let dotSprite = null;
+
+            if (oldDot) {
+                dotSprite = oldDot[2];
+            } else {
+                dotSprite = PIXI.Sprite.fromFrame('fish-0.png');
+                stage.addChild(dotSprite);
+            }
+
+            dot[2] = dotSprite; // eslint-disable-line no-param-reassign
+
+            dotSprite.x = dot[0];
+            dotSprite.y = dot[1];
+            dotSprite.scale.set(0.1);
+            dotSprite.anchor.set(0.5, 0.5);
+        });
+
         view.state.oldData = data;
     }
 
@@ -107,9 +145,7 @@ class Game extends Component {
     }
 
     render() {
-        return <div ref="wrapper">
-
-        </div>;
+        return <div ref="wrapper"/>;
     }
 }
 

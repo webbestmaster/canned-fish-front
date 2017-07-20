@@ -4,7 +4,8 @@ const MainModel = require('../lib/main-model');
 const attr = {
     socket: 'socket',
     update: 'update',
-    unit: 'unit'
+    unit: 'unit',
+    dots: 'dots'
 };
 
 class User extends MainModel {
@@ -14,7 +15,7 @@ class User extends MainModel {
         const user = this;
 
         user.connectToServer();
-        user.set('unit', {x: 0, y: 0});
+        user.set('unit', {x: 0, y: 0, size: 10});
     }
 
     connectToServer() {
@@ -32,7 +33,16 @@ class User extends MainModel {
             console.log(user);
         });
 
-        socket.on('update', data => user.trigger(attr.update, data));
+        socket.on('dots', userData => {
+            user.set(attr.dots, userData);
+            console.log('dots', userData);
+            console.log(user);
+        });
+
+        socket.on('update', data => {
+            data.dots = user.get(attr.dots); // eslint-disable-line no-param-reassign
+            user.trigger(attr.update, data);
+        });
 
 
         /*
