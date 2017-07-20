@@ -1,8 +1,10 @@
+/* global FPSMeter */
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import user from './../../module/user';
 import {find, filter, each} from 'lodash';
 import joystick from './../../module/joystick';
+
 const PIXI = require('pixi.js');
 
 class Game extends Component {
@@ -22,7 +24,8 @@ class Game extends Component {
                 units: [],
                 dots: [],
                 timestamp: 0
-            }
+            },
+            fpsMeter: new FPSMeter()
         };
     }
 
@@ -45,20 +48,21 @@ class Game extends Component {
         PIXI.loader
             .add('./assets/fish.json')
             .load(() => {
-                app.ticker.speed = 1;
-                app.ticker.add(delta => view.draw(delta));
+                // app.ticker.speed = ;
+                // let odd = 0;
+                app.ticker.add(delta => {
+                    // odd = (odd + 1) % 2;
+                    // if (odd) {
+                    //     return;
+                    // }
+                    view.draw();
+                    view.updateUnitXY(delta);
+                });
             });
         view.state.app = app;
     }
 
-    draw(delta) {
-        console.log(delta);
-        const view = this;
-        const {data, oldData} = view.state;
-        const {units, dots} = data;
-        let oldUnits = oldData.units;
-        let oldDots = oldData.dots;
-        const {stage, renderer} = view.state.app;
+    updateUnitXY(delta) {
         const userUnit = user.get('unit');
         const vector = joystick.get('vector');
 
@@ -70,6 +74,27 @@ class Game extends Component {
             x: parseInt(userUnit.x, 10),
             y: parseInt(userUnit.y, 10)
         }));
+    }
+
+    draw() {
+        const view = this;
+        const {state} = view;
+
+        state.fpsMeter.tick();
+        view.updateUnits();
+        view.updateDots();
+
+        state.oldData = state.data;
+    }
+
+    updateUnits() {
+        const view = this;
+        const {state} = view;
+        const {data, oldData} = state;
+        const {units} = data;
+        let oldUnits = oldData.units;
+        const {stage, renderer} = state.app;
+        const userId = user.get('id');
 
         oldUnits = filter(oldUnits, oldUnit => {
             if (find(units, {id: oldUnit.id})) {
@@ -94,15 +119,25 @@ class Game extends Component {
 
             unitSprite.x = unit.x;
             unitSprite.y = unit.y;
-            unitSprite.anchor.set(0.5, 0.5);
+            unitSprite.anchor.x = 0.5;
+            unitSprite.anchor.y = 0.5;
 
-            if (unit.id === user.get('id')) {
+            if (unit.id === userId) {
                 stage.pivot.x = unit.x;
                 stage.pivot.y = unit.y;
                 stage.position.x = renderer.width / 2;
                 stage.position.y = renderer.height / 2;
             }
         });
+    }
+
+    updateDots() {
+        const view = this;
+        const {state} = view;
+        const {data, oldData} = state;
+        const {dots} = data;
+        const {stage} = state.app;
+        let oldDots = oldData.dots;
 
         oldDots = filter(oldDots, oldDot => {
             if (find(dots, [oldDot[0], oldDot[1]])) {
@@ -120,6 +155,10 @@ class Game extends Component {
                 dotSprite = oldDot[2];
             } else {
                 dotSprite = PIXI.Sprite.fromFrame('fish-0.png');
+                dotSprite.scale.x = 0.1;
+                dotSprite.scale.y = 0.1;
+                dotSprite.anchor.x = 0.5;
+                dotSprite.anchor.y = 0.5;
                 stage.addChild(dotSprite);
             }
 
@@ -127,11 +166,7 @@ class Game extends Component {
 
             dotSprite.x = dot[0];
             dotSprite.y = dot[1];
-            dotSprite.scale.set(0.1);
-            dotSprite.anchor.set(0.5, 0.5);
         });
-
-        view.state.oldData = data;
     }
 
     componentDidMount() {

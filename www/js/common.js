@@ -23,3 +23,4 @@ import LogMonitor from 'redux-devtools-log-monitor';
 import SliderMonitor from 'redux-slider-monitor';
 import DockMonitor from 'redux-devtools-dock-monitor';
 import whyDidYouUpdate from 'why-did-you-update';
+require('./lib/fpsmeter');

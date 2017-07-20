@@ -7,6 +7,9 @@
 # npm
 node_modules
 
+# external lib
+/www/js/lib/fpsmeter.js
+
 # example
 # /* eslint-disable no-unused-vars */
 # var React = require('react');
