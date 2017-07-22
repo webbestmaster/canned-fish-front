@@ -1,11 +1,13 @@
 /* global io */
 const MainModel = require('../lib/main-model');
+const gameData = require('./../app/game/data.json');
 
 const attr = {
     socket: 'socket',
     update: 'update',
     unit: 'unit',
-    dots: 'dots'
+    data: 'data'
+    // oldData: 'oldData'
 };
 
 class User extends MainModel {
@@ -15,7 +17,8 @@ class User extends MainModel {
         const user = this;
 
         user.connectToServer();
-        user.set('unit', {x: 0, y: 0, size: 10});
+        user.set(attr.unit, {x: 0, y: 0});
+        user.set(attr.data, {units: [], ts: 0});
     }
 
     connectToServer() {
@@ -27,23 +30,38 @@ class User extends MainModel {
         socket.on('connect', () => {
             console.log('connect');
         });
+
         socket.on('create-user', userData => {
             user.set(userData);
             console.log('user data', userData);
             console.log(user);
+            socket.emit('xy', Object.assign(
+                {
+                    vx: 0,
+                    vy: 0,
+                    // id: user.get('id'),
+                    ...user.get(attr.unit)
+                }
+            ));
         });
 
-        socket.on('dots', userData => {
-            user.set(attr.dots, userData);
-            console.log('dots', userData);
-            console.log(user);
+        socket.on('data', data => {
+            // user.set(attr.oldData, user.get(attr.data));
+            user.set(attr.data, data);
+            // console.log('data --->', data);
         });
 
-        socket.on('update', data => {
-            data.dots = user.get(attr.dots); // eslint-disable-line no-param-reassign
-            user.trigger(attr.update, data);
-        });
 
+        // socket.on('dots', userData => {
+        //     user.set(attr.dots, userData);
+        //     console.log('dots', userData);
+        //     console.log(user);
+        // });
+
+        // socket.on('update', data => {
+        //     data.dots = user.get(attr.dots); // eslint-disable-line no-param-reassign
+        //     user.trigger(attr.update, data);
+        // });
 
         /*
          socket.on('chat message', function(data){
@@ -58,3 +76,17 @@ class User extends MainModel {
 
 export {User};
 export default new User();
+
+// helper
+export function adjustUnitData(unitData) {
+    const maxX = gameData.sea.width;
+    const maxY = gameData.sea.height;
+    const minX = 0;
+    const minY = 0;
+    const {x, y} = unitData;
+
+    return {
+        x: Math.max(Math.min(x, maxX), minX),
+        y: Math.max(Math.min(y, maxY), minY)
+    };
+}

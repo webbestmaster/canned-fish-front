@@ -1,7 +1,7 @@
 /* global FPSMeter */
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import user from './../../module/user';
+import user, {adjustUnitData} from './../../module/user';
 import {find, filter, each} from 'lodash';
 import joystick from './../../module/joystick';
 
@@ -17,13 +17,11 @@ class Game extends Component {
             app: null,
             oldData: {
                 units: [],
-                dots: [],
-                timestamp: 0
+                ts: 0
             },
             data: {
                 units: [],
-                dots: [],
-                timestamp: 0
+                ts: 0
             },
             fpsMeter: new FPSMeter()
         };
@@ -34,6 +32,7 @@ class Game extends Component {
         const {wrapper} = view.refs;
         const app = new PIXI.Application(800, 600);
 
+        // resize screen
         function appOnResize() {
             const docElem = document.documentElement;
 
@@ -43,37 +42,31 @@ class Game extends Component {
         appOnResize();
         window.addEventListener('resize', appOnResize, false);
 
+        // joystick listen
+        joystick.onChange('vector', vector => {
+            user.get('socket').emit('xy', {
+                vx: vector.x,
+                vy: vector.y
+            });
+        });
+
         wrapper.appendChild(app.view);
 
         PIXI.loader
             .add('./assets/fish.json')
             .load(() => {
-                // app.ticker.speed = ;
-                // let odd = 0;
+                let isNeeded = 0;
+
                 app.ticker.add(delta => {
-                    // odd = (odd + 1) % 2;
-                    // if (odd) {
-                    //     return;
-                    // }
+                    isNeeded += 1;
+                    if (isNeeded % 3) {
+                        return;
+                    }
+                    isNeeded = 0;
                     view.draw();
-                    view.updateUnitXY(delta);
                 });
             });
         view.state.app = app;
-    }
-
-    updateUnitXY(delta) {
-        const userUnit = user.get('unit');
-        const vector = joystick.get('vector');
-
-        userUnit.x -= delta * vector.x;
-        userUnit.y -= delta * vector.y;
-
-        // I can forget pass all parameters
-        user.get('socket').emit('xy', Object.assign({}, userUnit, {
-            x: parseInt(userUnit.x, 10),
-            y: parseInt(userUnit.y, 10)
-        }));
     }
 
     draw() {
@@ -82,7 +75,8 @@ class Game extends Component {
 
         state.fpsMeter.tick();
         view.updateUnits();
-        view.updateDots();
+        user.get('socket').emit('get-data');
+        // view.updateDots();
 
         state.oldData = state.data;
     }
@@ -90,6 +84,8 @@ class Game extends Component {
     updateUnits() {
         const view = this;
         const {state} = view;
+
+        state.data = user.get('data');
         const {data, oldData} = state;
         const {units} = data;
         let oldUnits = oldData.units;
@@ -106,6 +102,7 @@ class Game extends Component {
 
         each(units, unit => {
             const oldUnit = find(oldUnits, {id: unit.id});
+            const deltaT = data.ts - unit.ts;
             let unitSprite = null;
 
             if (oldUnit) {
@@ -116,6 +113,12 @@ class Game extends Component {
             }
 
             Object.assign(unit, {sprite: unitSprite});
+
+            // 16! see back end way for count
+            unit.x += unit.vx * deltaT / 16; // eslint-disable-line no-param-reassign
+            unit.y += unit.vy * deltaT / 16; // eslint-disable-line no-param-reassign
+
+            Object.assign(unit, adjustUnitData(unit));
 
             unitSprite.x = unit.x;
             unitSprite.y = unit.y;
@@ -131,43 +134,45 @@ class Game extends Component {
         });
     }
 
-    updateDots() {
-        const view = this;
-        const {state} = view;
-        const {data, oldData} = state;
-        const {dots} = data;
-        const {stage} = state.app;
-        let oldDots = oldData.dots;
+    /*
+        updateDots() {
+            const view = this;
+            const {state} = view;
+            const {data, oldData} = state;
+            const {dots} = data;
+            const {stage} = state.app;
+            let oldDots = oldData.dots;
 
-        oldDots = filter(oldDots, oldDot => {
-            if (find(dots, [oldDot[0], oldDot[1]])) {
-                return true;
-            }
-            stage.removeChild(oldDot[2]);
-            return false;
-        });
+            oldDots = filter(oldDots, oldDot => {
+                if (find(dots, [oldDot[0], oldDot[1]])) {
+                    return true;
+                }
+                stage.removeChild(oldDot[2]);
+                return false;
+            });
 
-        each(dots, dot => {
-            const oldDot = find(oldDots, [dot[0], dot[1]]);
-            let dotSprite = null;
+            each(dots, dot => {
+                const oldDot = find(oldDots, [dot[0], dot[1]]);
+                let dotSprite = null;
 
-            if (oldDot) {
-                dotSprite = oldDot[2];
-            } else {
-                dotSprite = PIXI.Sprite.fromFrame('fish-0.png');
-                dotSprite.scale.x = 0.1;
-                dotSprite.scale.y = 0.1;
-                dotSprite.anchor.x = 0.5;
-                dotSprite.anchor.y = 0.5;
-                stage.addChild(dotSprite);
-            }
+                if (oldDot) {
+                    dotSprite = oldDot[2];
+                } else {
+                    dotSprite = PIXI.Sprite.fromFrame('fish-0.png');
+                    dotSprite.scale.x = 0.1;
+                    dotSprite.scale.y = 0.1;
+                    dotSprite.anchor.x = 0.5;
+                    dotSprite.anchor.y = 0.5;
+                    stage.addChild(dotSprite);
+                }
 
-            dot[2] = dotSprite; // eslint-disable-line no-param-reassign
+                dot[2] = dotSprite; // eslint-disable-line no-param-reassign
 
-            dotSprite.x = dot[0];
-            dotSprite.y = dot[1];
-        });
-    }
+                dotSprite.x = dot[0];
+                dotSprite.y = dot[1];
+            });
+        }
+    */
 
     componentDidMount() {
         const view = this;

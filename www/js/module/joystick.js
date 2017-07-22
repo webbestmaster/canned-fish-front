@@ -25,13 +25,13 @@ class Joystick extends MainModel {
     initializePC() {
         const joystick = this;
 
-        document.body.addEventListener('mousemove', data => {
+        document.body.addEventListener('click', data => { // mousemove
             const maxDelta = 100;
             const docElem = document.documentElement;
             const centerX = docElem.clientWidth / 2;
             const centerY = docElem.clientHeight / 2;
-            const x = centerX - data.clientX;
-            const y = centerY - data.clientY;
+            const x = data.clientX - centerX;
+            const y = data.clientY - centerY;
 
             joystick.set(attr.vector, {
                 x: Math.min(Math.max(-maxDelta, x), maxDelta) / maxDelta,

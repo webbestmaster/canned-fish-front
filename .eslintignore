@@ -9,6 +9,7 @@ node_modules
 
 # external lib
 /www/js/lib/fpsmeter.js
+/_res
 
 # example
 # /* eslint-disable no-unused-vars */
